@@ -19,17 +19,19 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
 
-# *** Carga de datos ----------------------------------------------------------
+# *** Preparación de datos ----------------------------------------------------
 
-# Cargar ambas hojas del archivo Excel
+# * Carga de datos
 datos_patentes = pd.read_excel("./data/actividad_1/PATENT 3.xls", sheet_name=0)
 print(datos_patentes.head().to_string())
 
-descripcion_variables = pd.read_excel("./data/actividad_1/PATENT 3.xls", sheet_name=1)
+descripcion_variables = pd.read_excel(
+    "./data/actividad_1/PATENT 3.xls", sheet_name=1)
 print(descripcion_variables.to_string())
 
-# * El dataset muestra diferentes factores que influyen en la cantidad de
-# * patentes solicitadas y otorgadas a las empresas.
+# * Descripción de las variables
+# El dataset muestra diferentes factores que influyen en la cantidad de
+# patentes solicitadas y otorgadas a las empresas.
 
 # 1.  cusip:    Identificador único de la empresa (CUSIP es un id real de
 #               acciones, bonos, fondos mutuos, etc., de 6 o 9 caracteres).
@@ -57,10 +59,10 @@ print(descripcion_variables.to_string())
 # 3    800       0  11.842995  5.278894       32        34  38.499969  3.236010  2.518295  21.908798  566.964355  3740  2015
 # 4    800       0  12.990997  4.907936       40        28  35.124969  3.784838  2.780924  23.143875  631.100586  3740  2016
 
-# *** Preparación de datos ----------------------------------------------------
-
+# * Limpieza de datos
 # Eliminar las filas donde cusip no tiene 6 caracteres
-datos_patentes = datos_patentes[datos_patentes['cusip'].str.len() == 6]
+datos_patentes = datos_patentes[datos_patentes['cusip'].astype(
+    str).str.len() == 6]
 
 # ? NOTA:
 # Los "datos de panel" son simplemente datos de muchos individuos
@@ -73,9 +75,14 @@ datos_patentes = datos_patentes[datos_patentes['cusip'].str.len() == 6]
 datos_patentes['cusip'] = datos_patentes['cusip'].astype('category')
 datos_patentes.set_index(['cusip', 'year'], inplace=True)
 
-# *** Punto 1: Construcción del Modelo de Datos en Panel --------------------
+# *** Punto 1 -----------------------------------------------------------------
 
-# Selección de variables:
+# * Instrucciones
+# Construye un modelo de datos en panel. Recuerda seleccionar adecuadamente tus
+# variables dependiente e independientes. Recuerda que el objetivo del ejercicio
+# es predecir el número de patentes que una empresa podría generar.
+
+# * Selección de variables
 # - Variable dependiente: patentsg (número de patentes otorgadas)
 # - Variables independientes:
 #   1. employ (número de empleados)
@@ -92,185 +99,241 @@ print(modelo_panel.summary())
 
 #                             OLS Regression Results
 # ==============================================================================
-# Dep. Variable:               patentsg   R-squared:                       0.565
-# Model:                            OLS   Adj. R-squared:                  0.564
-# Method:                 Least Squares   F-statistic:                     721.9
+# Dep. Variable:               patentsg   R-squared:                       0.578
+# Model:                            OLS   Adj. R-squared:                  0.577
+# Method:                 Least Squares   F-statistic:                     704.1
 # Date:                Sun, 09 Feb 2025   Prob (F-statistic):               0.00
-# Time:                        14:04:01   Log-Likelihood:                -12004.
-# No. Observations:                2231   AIC:                         2.402e+04
-# Df Residuals:                    2226   BIC:                         2.405e+04
+# Time:                        23:07:26   Log-Likelihood:                -11137.
+# No. Observations:                2062   AIC:                         2.228e+04
+# Df Residuals:                    2057   BIC:                         2.231e+04
 # Df Model:                           4
 # Covariance Type:            nonrobust
 # ===============================================================================
 #                   coef    std err          t      P>|t|      [0.025      0.975]
 # -------------------------------------------------------------------------------
-# Intercept      -2.6051      2.026     -1.286      0.199      -6.578       1.367
-# employ          1.5081      0.048     31.320      0.000       1.414       1.602
-# rnd            -0.0796      0.019     -4.290      0.000      -0.116      -0.043
-# sales          -0.0027      0.001     -4.984      0.000      -0.004      -0.002
-# Q("return")     0.9120      0.203      4.503      0.000       0.515       1.309
+# Intercept      -3.0918      2.134     -1.449      0.148      -7.277       1.093
+# employ          1.5993      0.051     31.646      0.000       1.500       1.698
+# rnd            -0.1221      0.020     -6.211      0.000      -0.161      -0.084
+# sales          -0.0023      0.001     -4.091      0.000      -0.003      -0.001
+# Q("return")     1.0134      0.214      4.730      0.000       0.593       1.434
 # ==============================================================================
-# Omnibus:                     1025.542   Durbin-Watson:                   0.316
-# Prob(Omnibus):                  0.000   Jarque-Bera (JB):            96348.018
-# Skew:                           1.229   Prob(JB):                         0.00
-# Kurtosis:                      35.100   Cond. No.                     7.16e+03
+# Omnibus:                      770.590   Durbin-Watson:                   0.323
+# Prob(Omnibus):                  0.000   Jarque-Bera (JB):            78958.902
+# Skew:                           0.774   Prob(JB):                         0.00
+# Kurtosis:                      33.276   Cond. No.                     7.31e+03
 # ==============================================================================
 
 # Notes:
 # [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-# [2] The condition number is large, 7.16e+03. This might indicate that there are
+# [2] The condition number is large, 7.31e+03. This might indicate that there are
 # strong multicollinearity or other numerical problems.
+
 
 # * Interpretación
 
-# El modelo explica aproximadamente el 56.5% de la variación en el número de
-# patentes otorgadas a las empresas (R-squared: 0.565). Los hallazgos más
-# importantes son:
+# - El modelo explica aproximadamente el 57.8% de la variación en el número de
+#   patentes otorgadas a las empresas (R-squared: 0.578).
 
-# El número de empleados tiene un impacto positivo muy significativo en las
-# patentes: por cada 1,000 empleados adicionales, la empresa tiende a generar
-# aproximadamente 1.5 patentes más.
+# - El número de empleados tiene un impacto positivo muy significativo en las
+#   patentes. Por cada 1,000 empleados adicionales, la empresa tiende a generar
+#   aproximadamente 1.6 patentes más (coeficiente: 1.5993, p < 0.001).
 
-# Sorprendentemente, tanto el gasto en I+D (rnd) como las ventas tienen un
-# efecto negativo pequeño pero significativo, lo que podría sugerir que no es
-# tanto la cantidad de dinero invertido sino cómo se utiliza.
+# - Sorprendentemente el gasto en I+D tiene un efecto negativo significativo en
+#   el número de patentes otorgadas. Esto sugiere que no es solo la cantidad de
+#   dinero invertido en I+D lo que importa, sino cómo se utiliza (coeficiente:
+#   -0.1221, p < 0.001).
 
-# El retorno de las acciones tiene un efecto positivo, cuando el rendimiento de
-# las acciones mejora las empresas tienden a generar más patentes, posiblemente
-# porque tienen más recursos para invertir en innovación.
+# - Las ventas también tienen un efecto negativo pequeño pero significativo en
+#   el número de patentes otorgadas (coeficiente: -0.0023, p < 0.001). Esto
+#   podría indicar que un aumento en las ventas no necesariamente se traduce en
+#   un aumento en la innovación.
 
-# El modelo muestra señales de multicolinealidad, lo que sugiere que las
-# variables independientes están altamente correlacionadas entre sí.
+# - El retorno de las acciones tiene un efecto positivo significativo. Cuando el
+#   rendimiento de las acciones mejora, las empresas tienden a generar más
+#   patentes, posiblemente porque tienen más recursos para invertir en
+#   innovación (coeficiente: 1.0134, p < 0.001).
 
+# - El modelo muestra señales de multicolinealidad, sugiriendo que las variables
+#   independientes están altamente correlacionadas entre sí. Esto puede afectar
+#   la estabilidad de los coeficientes estimados y la interpretación de los
+#   resultados.
 
-# *** Punto 2: Pruebas de Diagnóstico con Plotly ------------------------------
+# *** Punto 2 -----------------------------------------------------------------
 
-# Crear un subplot interactivo con Plotly
+# * Instrucciones
+# Realiza las pruebas necesarias para detectar posibles errores en tu análisis.
+# Verifica la presencia o ausencia de heterocedasticidad y autocorrelación
+# serial.
+
+# * Inicialización
 fig = make_subplots(
     rows=2, cols=2,
     subplot_titles=(
-        'Residuos vs Valores Ajustados',
-        'Q-Q Plot de Residuos',
-        'Histograma de Residuos',
-        'Residuos Estandarizados'
+        '<b>Residuos vs Valores ajustados</b>',
+        '<b>Q-Q Plot de residuos</b>',
+        '<b>Histograma de residuos</b>',
+        '<b>Residuos estandarizados</b>'
     )
 )
 
-# 1. Residuos vs Valores Ajustados
+# * Residuos vs Valores Ajustados
 fig.add_trace(
     go.Scatter(
         x=modelo_panel.fittedvalues,
         y=modelo_panel.resid,
         mode='markers',
-        name='Residuos vs Ajustados',
-        marker=dict(color='blue', opacity=0.6)
+        marker=dict(color='blue', opacity=0.6),
+        showlegend=False
     ),
     row=1, col=1
 )
 
-# 2. Q-Q Plot de Residuos
+# * Q-Q Plot de residuos
 # Calcular los cuantiles teóricos y observados
+residuos = modelo_panel.resid
+sorted_residuals = np.sort(residuos)
 teorical_quantiles = stats.norm.ppf(
-    np.linspace(0.01, 0.99, len(modelo_panel.resid)))
-sorted_residuals = np.sort(modelo_panel.resid)
+    np.linspace(0.01, 0.99, len(sorted_residuals)))
 
 fig.add_trace(
     go.Scatter(
         x=teorical_quantiles,
         y=sorted_residuals,
         mode='markers',
-        name='Q-Q Plot',
-        marker=dict(color='green', opacity=0.6)
+        marker=dict(color='green', opacity=0.6),
+        showlegend=False
     ),
     row=1, col=2
 )
 
-# Línea de referencia para Q-Q Plot
+# * Línea de referencia para Q-Q Plot
 min_val, max_val = min(teorical_quantiles), max(teorical_quantiles)
+
 fig.add_trace(
     go.Scatter(
         x=[min_val, max_val],
         y=[min_val, max_val],
         mode='lines',
-        name='Línea de Referencia',
-        line=dict(color='red', dash='dash')
+        line=dict(color='red', dash='dash'),
+        showlegend=False
     ),
     row=1, col=2
 )
 
-# 3. Histograma de Residuos
+# * Histograma de residuos
 hist_data, bin_edges = np.histogram(modelo_panel.resid, bins=30)
+
 fig.add_trace(
     go.Bar(
         x=(bin_edges[:-1] + bin_edges[1:]) / 2,
         y=hist_data,
-        name='Histograma de Residuos',
         marker_color='purple',
-        opacity=0.6
+        opacity=0.6,
+        showlegend=False
     ),
     row=2, col=1
 )
 
-# 4. Residuos Estandarizados
+# * Residuos estandarizados
 fig.add_trace(
     go.Scatter(
         x=modelo_panel.fittedvalues,
         y=modelo_panel.resid_pearson,
         mode='markers',
-        name='Residuos Estandarizados',
-        marker=dict(color='orange', opacity=0.6)
+        marker=dict(color='orange', opacity=0.6),
+        showlegend=False
     ),
     row=2, col=2
 )
 
-# Actualizar layout
+# * Actualización de layout
 fig.update_layout(
-    height=800,
-    width=1200,
-    title_text='Diagnóstico del Modelo de Regresión',
-    showlegend=True
+    height=800,  # Altura fija en píxeles en lugar de vh
+    title_text='<b>Diagnóstico del modelo de regresión</b>',
+    title_font=dict(size=24),
+    showlegend=False,
+    autosize=True,
+    margin=dict(l=40, r=40, t=80, b=40),
+    grid=dict(
+        rows=2,
+        columns=2,
+        pattern='independent',
+        roworder='top to bottom',
+        ygap=0.1,
+        xgap=0.1
+    ),
 )
 
-# Actualizar títulos de ejes
-fig.update_xaxes(title_text='Valores Ajustados', row=1, col=1)
+# * Títulos de ejes
+fig.update_xaxes(title_text='Valores ajustados', row=1, col=1)
 fig.update_yaxes(title_text='Residuos', row=1, col=1)
 
-fig.update_xaxes(title_text='Cuantiles Teóricos', row=1, col=2)
-fig.update_yaxes(title_text='Cuantiles de Residuos', row=1, col=2)
+fig.update_xaxes(title_text='Cuantiles teóricos', row=1, col=2)
+fig.update_yaxes(title_text='Cuantiles de residuos', row=1, col=2)
 
 fig.update_xaxes(title_text='Residuos', row=2, col=1)
 fig.update_yaxes(title_text='Frecuencia', row=2, col=1)
 
-fig.update_xaxes(title_text='Valores Ajustados', row=2, col=2)
-fig.update_yaxes(title_text='Residuos Estandarizados', row=2, col=2)
+fig.update_xaxes(title_text='Valores ajustados', row=2, col=2)
+fig.update_yaxes(title_text='Residuos estandarizados', row=2, col=2)
 
-# Guardar el gráfico interactivo
+# * Exportar
 pio.write_html(
-    fig, file='./assets/actividad_1/diagnostico_modelo_patentes.html')
+    fig,
+    file='./docs/actividad_1/diagnostico_modelo_patentes.html',
+    config={
+        'responsive': True,
+        'displayModeBar': True,
+        'scrollZoom': True
+    },
+    full_html=True,
+    include_plotlyjs=True,
+    validate=True,
+)
 
-# *** Punto 3: Selección de Modelo de Efectos ------------------------------
+
+# *** Punto 3 -----------------------------------------------------------------
+
+# * Instrucciones
+# Determina cuál es el modelo apropiado de datos panel para este caso (efectos
+# fijos o efectos aleatorios).
+
+# Preparar los datos
+datos_panel = datos_patentes.reset_index()
 
 # Modelo de Efectos Fijos
 modelo_efectos_fijos = smf.ols(
-    formula='patentsg ~ employ + rnd + sales + Q("return") + C(cusip)', data=datos_patentes.reset_index()).fit()
+    formula='patentsg ~ employ + rnd + sales + Q("return") + C(cusip)',
+    data=datos_panel).fit()
 
-# Modelo de Efectos Aleatorios (usando Mínimos Cuadrados Generalizados)
-modelo_efectos_aleatorios = MixedLM.from_formula('patentsg ~ employ + rnd + sales + Q("return")',
-                                                 groups='cusip',
-                                                 data=datos_patentes.reset_index()).fit()
+# Modelo de Efectos Aleatorios
+try:
+    modelo_efectos_aleatorios = MixedLM.from_formula(
+        'patentsg ~ employ + rnd + sales + Q("return")',
+        groups=datos_panel['cusip'],
+        data=datos_panel,
+        re_formula='1'  # Término aleatorio para el intercepto
+    ).fit()
+except:
+    print("No se pudo ajustar el modelo de efectos aleatorios")
+    modelo_efectos_aleatorios = None
 
-# Prueba de Hausman para comparar modelos
-print("\n--- Prueba de Hausman ---")
-# Nota: La implementación exacta de Hausman requeriría cálculos más complejos
-# Aquí se muestra un enfoque simplificado de comparación
-
-print("Modelo de Efectos Fijos:")
+# Mostrar resultados
+print("\n--- Resultados del Modelo de Efectos Fijos ---")
 print(modelo_efectos_fijos.summary().tables[1])
 
-print("\nModelo de Efectos Aleatorios:")
-print(modelo_efectos_aleatorios.summary())
+if modelo_efectos_aleatorios is not None:
+    print("\n--- Resultados del Modelo de Efectos Aleatorios ---")
+    print(modelo_efectos_aleatorios.summary())
 
 # Criterios de Información para comparación
 print("\nComparación de Criterios de Información:")
 print(f"Efectos Fijos - AIC: {modelo_efectos_fijos.aic}")
-print(f"Efectos Aleatorios - AIC: {modelo_efectos_aleatorios.aic}")
+if modelo_efectos_aleatorios is not None:
+    print(f"Efectos Aleatorios - AIC: {modelo_efectos_aleatorios.aic}")
+
+# *** Punto 4 -----------------------------------------------------------------
+
+# * Instrucciones
+# Interpreta los resultados y comenta que tan buenos serían los pronósticos
+# generados con el modelo propuesto.
